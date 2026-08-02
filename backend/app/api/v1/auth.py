@@ -6,15 +6,26 @@ from sqlmodel import select
 
 from app.schemas.auth import UserCreate, UserRead, Token
 from app.models.user import User
-from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+from app.core.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+)
 from app.db.session import get_session
 from app.deps.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 @router.post("/register", response_model=UserRead)
 async def register(user_in: UserCreate, session: AsyncSession = Depends(get_session)):
-    user = User(email=user_in.email, hashed_password=hash_password(user_in.password), full_name=user_in.full_name)
+    user = User(
+        email=user_in.email,
+        hashed_password=hash_password(user_in.password),
+        full_name=user_in.full_name,
+    )
     session.add(user)
     try:
         await session.commit()
@@ -24,8 +35,11 @@ async def register(user_in: UserCreate, session: AsyncSession = Depends(get_sess
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
     return user
 
+
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)
+):
     # Use SQLModel select to fetch user by email
     result = await session.exec(select(User).where(User.email == form_data.username))
     user = result.first()
@@ -37,9 +51,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     refresh_token = create_refresh_token(subject=str(user.id))
     return Token(access_token=access_token, refresh_token=refresh_token)
 
+
 class RefreshRequest:
     def __init__(self, refresh_token: str):
         self.refresh_token = refresh_token
+
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(payload: dict = Depends()):
@@ -59,6 +75,7 @@ async def refresh_token(payload: dict = Depends()):
     access_token = create_access_token(subject=str(sub))
     new_refresh = create_refresh_token(subject=str(sub))
     return Token(access_token=access_token, refresh_token=new_refresh)
+
 
 @router.get("/me", response_model=UserRead)
 async def read_users_me(current_user: User = Depends(get_current_user)):

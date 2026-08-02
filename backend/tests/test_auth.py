@@ -14,6 +14,7 @@ asyncio.run(init_db())
 
 client = TestClient(app)
 
+
 def test_register_and_login():
     # Register
     payload = {"email": "test@example.com", "password": "secret", "full_name": "Test User"}
@@ -23,7 +24,9 @@ def test_register_and_login():
     assert data["email"] == "test@example.com"
 
     # Login
-    r2 = client.post("/api/v1/auth/token", data={"username": "test@example.com", "password": "secret"})
+    r2 = client.post(
+        "/api/v1/auth/token", data={"username": "test@example.com", "password": "secret"}
+    )
     assert r2.status_code == 200
     tokens = r2.json()
     assert "access_token" in tokens
