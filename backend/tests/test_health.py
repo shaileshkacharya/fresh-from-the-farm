@@ -1,3 +1,7 @@
+import os
+# Ensure the application knows it's in test mode to avoid startup DB initialization
+os.environ.setdefault("ENVIRONMENT", "test")
+
 from fastapi.testclient import TestClient
 from app.main import app
 

@@ -15,7 +15,9 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def on_startup():
         # initialize DB (create tables for dev). In prod use migrations.
-        await init_db()
+        # Skip DB initialization during tests to avoid requiring a running Postgres instance.
+        if settings.environment != "test":
+            await init_db()
 
     return app
 
