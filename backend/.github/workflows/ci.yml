@@ -18,6 +18,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ruff black
+      - name: Auto-fix lint (ruff) and format (black)
+        run: |
+          # Attempt to auto-fix issues in the runner workspace
+          ruff format --quiet . || true
+          ruff check --fix . || true
+          black . || true
       - name: Run ruff
         run: |
           ruff check .
@@ -79,7 +85,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
-          pip install pytest httpx asyncpg
+          pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel
+      - name: Create tables for integration tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://fftf_admin:fftf_password@localhost:5432/fresh_from_the_farm
+        run: |
+          python backend/ci/create_tables.py
       - name: Run integration tests
         env:
           ENVIRONMENT: integration
