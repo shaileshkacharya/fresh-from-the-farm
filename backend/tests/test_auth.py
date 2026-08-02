@@ -1,10 +1,10 @@
 import os
-import asyncio
 
-# Test configuration: use in-memory SQLite for tests and set test environment
+# Test configuration: use in-memory SQLite for tests and set test environment if not already set
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
+import asyncio
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.session import init_db
