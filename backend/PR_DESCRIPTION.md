@@ -1,7 +1,3 @@
-## PR: feat(package): standardize backend structure, settings, async DB, and CI (Package 1B)
-
-This PR introduces Package 1B improvements to the backend foundation.
-
 Summary of changes
 
 - Switch to Poetry for dependency management (pyproject updated)
@@ -24,4 +20,10 @@ Notes / TODO
 - Add authentication and authorization in next package
 - Expand tests and enforce linting in CI
 
-This PR is ready for review.
+Checklist
+
+- [ ] Tests pass locally (pytest)
+- [ ] Linting and formatting run (ruff/black)
+- [ ] CI is passing on GH Actions
+- [ ] Confirm no secrets in .env or committed files
+- [ ] Remove create_all from startup before production deploy (tracked TODO)
