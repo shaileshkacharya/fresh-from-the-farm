@@ -65,31 +65,47 @@ jobs:
           --health-cmd="pg_isready -U fftf_admin"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
     steps:
       - uses: actions/checkout@v4
-      - name: Wait for Postgres
+      - name: Wait for Postgres (with timeout)
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
-          until pg_isready -h localhost -p 5432 -U fftf_admin; do
-            echo "Waiting for Postgres..."
+          echo "Waiting up to 60s for Postgres to be ready..."
+          ATTEMPTS=0
+          until pg_isready -h localhost -p 5432 -U fftf_admin || [ $ATTEMPTS -ge 60 ]; do
+            ATTEMPTS=$((ATTEMPTS+1))
+            echo "Waiting for Postgres... ($ATTEMPTS)"
             sleep 1
           done
+          if ! pg_isready -h localhost -p 5432 -U fftf_admin; then
+            echo "Postgres did not become ready in time" && exit 1
+          fi
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
-      - name: Install dependencies
+      - name: Install dependencies (integration)
         env:
           DATABASE_URL: postgresql+asyncpg://fftf_admin:fftf_password@localhost:5432/fresh_from_the_farm
         run: |
           python -m pip install --upgrade pip
+          # Install package and integration dependencies
           pip install .
-          pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel
-      - name: Create tables for integration tests
+          pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel alembic
+      - name: Create tables for integration tests (with retries)
         env:
           DATABASE_URL: postgresql+asyncpg://fftf_admin:fftf_password@localhost:5432/fresh_from_the_farm
         run: |
+          set -e
+          ATTEMPT=0
+          until [ $ATTEMPT -ge 5 ]; do
+            python backend/ci/create_tables.py && break || true
+            ATTEMPT=$((ATTEMPT+1))
+            echo "create_tables attempt $ATTEMPT failed, retrying..."
+            sleep 2
+          done
+          # Final attempt to ensure failure is visible
           python backend/ci/create_tables.py
       - name: Run integration tests
         env:
