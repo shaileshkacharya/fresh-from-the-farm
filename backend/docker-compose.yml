@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: fftf-api
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_started
+
+    volumes:
+      - ./:/app
+
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+
+  postgres:
+
+    image: postgres:16
+
+    container_name: fftf-postgres
+
+    restart: unless-stopped
+
+    environment:
+
+      POSTGRES_DB: fresh_from_the_farm
+
+      POSTGRES_USER: fftf_admin
+
+      POSTGRES_PASSWORD: fftf_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fftf_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+
+    image: redis:7-alpine
+
+    container_name: fftf-redis
+
+    ports:
+      - "6379:6379"
+
+    restart: unless-stopped
+
+volumes:
+
+  postgres_data:
