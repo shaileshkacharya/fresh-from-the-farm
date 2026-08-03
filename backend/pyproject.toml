@@ -4,3 +4,4 @@ line-length = 88
 [tool.ruff]
 line-length = 88
 # You can customize rules here as needed. Keeping defaults for now.
+extend-ignore = ["B008"]
