@@ -46,12 +46,15 @@ jobs:
           python-version: '3.13'
       - name: Install dependencies
         working-directory: backend
+        env:
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           python -m pip install --upgrade pip
-          pip install .
           pip install pytest httpx
       - name: Run unit tests
         working-directory: backend
+        env:
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           pytest -q
 
@@ -95,10 +98,10 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: "******localhost:5432/fresh_from_the_farm"
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           python -m pip install --upgrade pip
           # Install package and integration dependencies
-          pip install .
           pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel alembic
       - name: Create tables for integration tests (with retries)
         working-directory: backend
