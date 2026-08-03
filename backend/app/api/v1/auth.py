@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
-from app.schemas.auth import UserCreate, UserRead, Token
+from app.schemas.auth import UserCreate, UserRead, Token, RefreshRequest
 from app.models.user import User
 from app.core.security import (
     hash_password,
@@ -52,20 +52,9 @@ async def login_for_access_token(
     return Token(access_token=access_token, refresh_token=refresh_token)
 
 
-class RefreshRequest:
-    def __init__(self, refresh_token: str):
-        self.refresh_token = refresh_token
-
-
 @router.post("/refresh", response_model=Token)
-async def refresh_token(payload: dict = Depends()):
-    # Expect JSON body with {"refresh_token": "..."}
-    # FastAPI will place the raw request body into the dependency if configured; for simplicity, read from payload dict
-    token = None
-    try:
-        token = payload.get("refresh_token")
-    except Exception:
-        token = None
+async def refresh_token(payload: RefreshRequest):
+    token = payload.refresh_token
     if not token:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="refresh_token is required")
     payload_decoded = decode_token(token)
