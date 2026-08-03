@@ -55,8 +55,12 @@ jobs:
         working-directory: backend
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: |
-          pytest -q
+                SECRET_KEY: "test-secret"
+                JWT_SECRET: "test-jwt-secret"
+                REDIS_URL: "redis://localhost:6379/0"
+                DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+              run: |
+                pytest -q
 
   integration:
     runs-on: ubuntu-latest
@@ -99,25 +103,31 @@ jobs:
         env:
           DATABASE_URL: "******localhost:5432/fresh_from_the_farm"
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: |
-          python -m pip install --upgrade pip
-          # Install package and integration dependencies
-          pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel alembic pydantic==2.11.2 pydantic-settings
+                SECRET_KEY: "test-secret"
+                JWT_SECRET: "test-jwt-secret"
+                REDIS_URL: "redis://localhost:6379/0"
+              run: |
+                python -m pip install --upgrade pip
+                # Install package and integration dependencies
+                pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel alembic pydantic==2.11.2 pydantic-settings
       - name: Create tables for integration tests (with retries)
         working-directory: backend
         env:
           DATABASE_URL: "******localhost:5432/fresh_from_the_farm"
-        run: |
-          set -e
-          ATTEMPT=0
-          until [ $ATTEMPT -ge 5 ]; do
-            python ci/create_tables.py && break || true
-            ATTEMPT=$((ATTEMPT+1))
-            echo "create_tables attempt $ATTEMPT failed, retrying..."
-            sleep 2
-          done
-          # Final attempt to ensure failure is visible
-          python ci/create_tables.py
+                SECRET_KEY: "test-secret"
+                JWT_SECRET: "test-jwt-secret"
+                REDIS_URL: "redis://localhost:6379/0"
+              run: |
+                set -e
+                ATTEMPT=0
+                until [ $ATTEMPT -ge 5 ]; do
+                  python ci/create_tables.py && break || true
+                  ATTEMPT=$((ATTEMPT+1))
+                  echo "create_tables attempt $ATTEMPT failed, retrying..."
+                  sleep 2
+                done
+                # Final attempt to ensure failure is visible
+                python ci/create_tables.py
       - name: Run integration tests
         working-directory: backend
         env:
