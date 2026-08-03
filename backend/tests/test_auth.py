@@ -15,7 +15,7 @@ asyncio.run(init_db())
 client = TestClient(app)
 
 
-def test_register_and_login():
+def test_register_and_login_and_refresh_and_me():
     # Register
     payload = {"email": "test@example.com", "password": "secret", "full_name": "Test User"}
     r = client.post("/api/v1/auth/register", json=payload)
@@ -31,3 +31,19 @@ def test_register_and_login():
     tokens = r2.json()
     assert "access_token" in tokens
     assert "refresh_token" in tokens
+
+    # Refresh
+    r3 = client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+    )
+    assert r3.status_code == 200
+    refreshed = r3.json()
+    assert "access_token" in refreshed
+    assert "refresh_token" in refreshed
+
+    # Me endpoint
+    headers = {"Authorization": f"Bearer {tokens['access_token']}"}
+    r4 = client.get("/api/v1/auth/me", headers=headers)
+    assert r4.status_code == 200
+    me = r4.json()
+    assert me["email"] == "test@example.com"
