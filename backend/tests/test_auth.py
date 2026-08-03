@@ -47,3 +47,28 @@ def test_register_and_login_and_refresh_and_me():
     assert r4.status_code == 200
     me = r4.json()
     assert me["email"] == "test@example.com"
+
+
+def test_refresh_with_invalid_token():
+    r = client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid.token.here"})
+    assert r.status_code == 401
+
+
+def test_refresh_with_expired_token():
+    from datetime import timedelta
+    from app.core.security import create_refresh_token
+
+    expired = create_refresh_token(subject="1", expires_delta=timedelta(seconds=-60))
+    r = client.post("/api/v1/auth/refresh", json={"refresh_token": expired})
+    assert r.status_code == 401
+
+
+def test_me_missing_token():
+    r = client.get("/api/v1/auth/me")
+    assert r.status_code == 401
+
+
+def test_me_invalid_token():
+    headers = {"Authorization": "Bearer invalidtoken"}
+    r = client.get("/api/v1/auth/me", headers=headers)
+    assert r.status_code == 401
