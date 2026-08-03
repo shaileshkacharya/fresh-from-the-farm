@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHash
 from jose import jwt, JWTError
 
 from app.core.settings import settings
@@ -18,13 +19,13 @@ def hash_password(password: str) -> str:
 def verify_password(hash: str, password: str) -> bool:
     try:
         return pwd_hasher.verify(hash, password)
-    except Exception:
+    except (VerifyMismatchError, VerificationError, InvalidHash):
         return False
 
 
 def create_access_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = {"sub": str(subject)}
-    expire = datetime.utcnow() + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
     )
     to_encode.update({"exp": expire})
@@ -34,7 +35,7 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
 
 def create_refresh_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = {"sub": str(subject)}
-    expire = datetime.utcnow() + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(days=settings.refresh_token_expire_days)
     )
     to_encode.update({"exp": expire})

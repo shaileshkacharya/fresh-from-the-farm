@@ -20,7 +20,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=UserRead)
-async def register(user_in: UserCreate, session: AsyncSession = Depends(get_session)):
+async def register(user_in: UserCreate, session: AsyncSession = Depends(get_session)):  # noqa: B008
     user = User(
         email=user_in.email,
         hashed_password=hash_password(user_in.password),
@@ -38,7 +38,7 @@ async def register(user_in: UserCreate, session: AsyncSession = Depends(get_sess
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)
+    form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)  # noqa: B008
 ):
     # Use SQLModel select to fetch user by email
     result = await session.exec(select(User).where(User.email == form_data.username))
@@ -67,5 +67,5 @@ async def refresh_token(payload: RefreshRequest):
 
 
 @router.get("/me", response_model=UserRead)
-async def read_users_me(current_user: User = Depends(get_current_user)):
+async def read_users_me(current_user: User = Depends(get_current_user)):  # noqa: B008
     return current_user

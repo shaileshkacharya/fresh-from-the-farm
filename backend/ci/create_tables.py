@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 # Adjust imports to include any modules that define SQLModel models
 try:
     from app.models import user  # noqa: F401
-except Exception:
+except ImportError:
     pass
 
 

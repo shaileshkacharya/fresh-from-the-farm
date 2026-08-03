@@ -12,7 +12,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)
+    token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)  # noqa: B008
 ) -> User:
     payload = decode_token(token)
     if payload is None:
@@ -41,7 +41,7 @@ async def get_current_user(
 
 
 def role_required(role: str):
-    async def _role_required(current_user: User = Depends(get_current_user)) -> User:
+    async def _role_required(current_user: User = Depends(get_current_user)) -> User:  # noqa: B008
         if current_user.role != role and current_user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient privileges"
