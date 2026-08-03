@@ -15,19 +15,23 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install ruff and black
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install ruff black
       - name: Auto-fix lint (ruff) and format (black)
+        working-directory: backend
         run: |
           # Attempt to auto-fix issues in the runner workspace
           ruff format --quiet . || true
           ruff check --fix . || true
           black . || true
       - name: Run ruff
+        working-directory: backend
         run: |
           ruff check .
       - name: Check formatting (black)
+        working-directory: backend
         run: |
           black --check . || (echo "Run 'black .' to format" && exit 1)
 
@@ -41,11 +45,13 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install dependencies
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install .
           pip install pytest httpx
       - name: Run unit tests
+        working-directory: backend
         run: |
           pytest -q
 
@@ -86,6 +92,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install dependencies (integration)
+        working-directory: backend
         env:
           DATABASE_URL: "******localhost:5432/fresh_from_the_farm"
         run: |
@@ -94,20 +101,22 @@ jobs:
           pip install .
           pip install pytest httpx asyncpg sqlalchemy[asyncio] sqlmodel alembic
       - name: Create tables for integration tests (with retries)
+        working-directory: backend
         env:
           DATABASE_URL: "******localhost:5432/fresh_from_the_farm"
         run: |
           set -e
           ATTEMPT=0
           until [ $ATTEMPT -ge 5 ]; do
-            python backend/ci/create_tables.py && break || true
+            python ci/create_tables.py && break || true
             ATTEMPT=$((ATTEMPT+1))
             echo "create_tables attempt $ATTEMPT failed, retrying..."
             sleep 2
           done
           # Final attempt to ensure failure is visible
-          python backend/ci/create_tables.py
+          python ci/create_tables.py
       - name: Run integration tests
+        working-directory: backend
         env:
           ENVIRONMENT: integration
           DATABASE_URL: "******localhost:5432/fresh_from_the_farm"
