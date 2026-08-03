@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from .endpoints import health, auth
+from .endpoints import health
+from . import auth
 
 api_router = APIRouter()
 api_router.include_router(health.router, prefix="", tags=["health"])
