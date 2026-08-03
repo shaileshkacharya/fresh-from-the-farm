@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [ main, feat/package-1b, feat/auth ]
+    branches: [ main, feat/package-1b, feat/auth, feat/auth-clean ]
   pull_request:
     branches: [ main ]
 
